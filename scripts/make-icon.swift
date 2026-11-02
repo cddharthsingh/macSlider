@@ -1,8 +1,11 @@
-// Renders the app icon: a graphite trackpad with a lit rail on each edge.
-//   swift scripts/make-icon.swift build/icon.png
+// Renders the app icon.
+//   swift scripts/make-icon.swift build/icon.png            -> abstract: one lit stroke
+//   swift scripts/make-icon.swift build/icon.png trackpad   -> literal: trackpad with edge rails
 import AppKit
 
-let out = CommandLine.arguments.dropFirst().first ?? "build/icon.png"
+let args = Array(CommandLine.arguments.dropFirst())
+let out = args.first ?? "build/icon.png"
+let literal = args.dropFirst().first == "trackpad"
 let size: CGFloat = 1024
 let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
     guard let ctx = NSGraphicsContext.current?.cgContext else { return false }
@@ -26,6 +29,49 @@ let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _
                                  CGColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1)] as CFArray,
                         locations: [0, 1])!
     ctx.drawLinearGradient(bg, start: CGPoint(x: 0, y: size), end: CGPoint(x: 0, y: 0), options: [])
+
+    if !literal {
+        // One vertical stroke, sky at the top fading into gold at the bottom, with a bloom behind it.
+        let x = size * 0.5, top = size * 0.74, bottom = size * 0.26
+        let gold = CGColor(red: 0.98, green: 0.80, blue: 0.45, alpha: 1)
+        let sky = CGColor(red: 0.55, green: 0.76, blue: 1.00, alpha: 1)
+
+        let bloom = CGGradient(colorsSpace: space,
+                               colors: [CGColor(red: 0.70, green: 0.78, blue: 0.95, alpha: 0.22),
+                                        CGColor(red: 0.70, green: 0.78, blue: 0.95, alpha: 0.0)] as CFArray,
+                               locations: [0, 1])!
+        ctx.drawRadialGradient(bloom, startCenter: CGPoint(x: x, y: size * 0.5), startRadius: 0,
+                               endCenter: CGPoint(x: x, y: size * 0.5), endRadius: size * 0.42, options: [])
+
+        // Dim track the stroke sits in.
+        let trackW: CGFloat = 26
+        ctx.addPath(CGPath(roundedRect: CGRect(x: x - trackW / 2, y: bottom - 40, width: trackW, height: top - bottom + 80),
+                           cornerWidth: trackW / 2, cornerHeight: trackW / 2, transform: nil))
+        ctx.setFillColor(CGColor(gray: 1, alpha: 0.07)); ctx.fillPath()
+
+        let strokeW: CGFloat = 26
+        let strokeRect = CGRect(x: x - strokeW / 2, y: bottom, width: strokeW, height: (top - bottom) * 0.62)
+        let strokePath = CGPath(roundedRect: strokeRect, cornerWidth: strokeW / 2, cornerHeight: strokeW / 2, transform: nil)
+        ctx.saveGState()
+        ctx.setShadow(offset: .zero, blur: 70, color: CGColor(red: 0.85, green: 0.80, blue: 0.70, alpha: 0.9))
+        ctx.addPath(strokePath); ctx.setFillColor(gold); ctx.fillPath()
+        ctx.restoreGState()
+        ctx.saveGState()
+        ctx.addPath(strokePath); ctx.clip()
+        let strokeGrad = CGGradient(colorsSpace: space, colors: [sky, gold] as CFArray, locations: [0, 1])!
+        ctx.drawLinearGradient(strokeGrad, start: CGPoint(x: 0, y: strokeRect.maxY), end: CGPoint(x: 0, y: strokeRect.minY), options: [])
+        ctx.restoreGState()
+
+        // The thumb: a bright point at the top of the stroke.
+        ctx.saveGState()
+        ctx.setShadow(offset: .zero, blur: 40, color: CGColor(gray: 1, alpha: 0.8))
+        ctx.setFillColor(CGColor(gray: 1, alpha: 1))
+        ctx.fillEllipse(in: CGRect(x: x - 30, y: strokeRect.maxY - 30, width: 60, height: 60))
+        ctx.restoreGState()
+
+        ctx.restoreGState()
+        return true
+    }
 
     // Trackpad surface.
     let padW: CGFloat = 560, padH: CGFloat = 400

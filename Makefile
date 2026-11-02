@@ -1,4 +1,4 @@
-.PHONY: app run install test clean check-toolchain
+.PHONY: app run install uninstall test clean check-toolchain
 
 # SwiftUI macros (@State, @Observable, ...) only ship with full Xcode, not the Command Line Tools.
 check-toolchain:
@@ -19,6 +19,13 @@ install: app         ## Copy to /Applications
 	rm -rf /Applications/macSlider.app
 	cp -R build/macSlider.app /Applications/
 	open /Applications/macSlider.app
+
+uninstall:           ## Quit the app and remove it, its settings, and its Accessibility grant
+	-pkill -x macSlider
+	rm -rf /Applications/macSlider.app build/macSlider.app
+	-defaults delete dev.macslider.app 2>/dev/null
+	-tccutil reset Accessibility dev.macslider.app >/dev/null 2>&1
+	@echo "Removed macSlider. If Open at login was on, also check System Settings > General > Login Items."
 
 test: check-toolchain ## Run the gesture engine tests
 	swift test

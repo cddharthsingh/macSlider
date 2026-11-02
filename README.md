@@ -63,6 +63,10 @@ If you rebuild the app yourself, each new build has a new ad-hoc signature and m
 
 Then slide the right edge and listen.
 
+### Uninstalling
+
+Quit macSlider from its panel (the power button or ⌘Q), then drag `macSlider.app` to the Trash. Settings live in `defaults delete dev.macslider.app`, and you can remove the Accessibility entry in **System Settings → Privacy & Security → Accessibility**. If you built from source, `make uninstall` does all of that in one go.
+
 ### Build it yourself
 
 You need Xcode 16 or newer. The Command Line Tools alone cannot compile SwiftUI, and `make` will stop and tell you if you're on the wrong toolchain.

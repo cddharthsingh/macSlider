@@ -35,13 +35,33 @@ macSlider is a free, MIT-licensed menu bar app for macOS 14 and later. On macOS 
 
 ## Thirty seconds to try it
 
-Download `macSlider-<version>.zip` from the [latest release](https://github.com/cddharthsingh/macSlider/releases/latest), unzip it, and drag `macSlider.app` to `/Applications`. The build is not notarized yet, so macOS will refuse to open it the first time. Either right-click the app and choose Open, or clear the quarantine flag:
+Download `macSlider-<version>.zip` from the [latest release](https://github.com/cddharthsingh/macSlider/releases/latest), unzip it, and drag `macSlider.app` to `/Applications`.
+
+> **This build is ad-hoc signed, not notarized.** macOS will block it on first launch with *"macSlider" Not Opened* or *cannot be opened because the developer cannot be verified*. That is Gatekeeper doing its job on an app without an Apple Developer signature, not a sign the app is broken. There is no cost to the workaround below, but you do have to do it once.
+
+### Opening it the first time
+
+**macOS 15 Sequoia and later** (right-click → Open no longer works here):
+
+1. Double-click `macSlider.app`. macOS shows the block dialog. Click **Done**.
+2. Open **System Settings → Privacy & Security**, scroll down to the **Security** section.
+3. Next to *"macSlider" was blocked to protect your Mac*, click **Open Anyway**, then confirm with your password or Touch ID.
+
+**macOS 14 Sonoma:** right-click (or Control-click) `macSlider.app` in Finder, choose **Open**, then click **Open** again in the dialog.
+
+**Any version, from Terminal:** clear the quarantine flag and the block never appears:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/macSlider.app
 ```
 
-Then open it, grant Accessibility access when asked, and slide the right edge.
+### Granting Accessibility access
+
+Once it opens, macSlider asks for Accessibility access. It needs this to press the volume and brightness keys and to hold the cursor still while you slide; without it the edges do nothing. If you dismissed the prompt, go to **System Settings → Privacy & Security → Accessibility** and turn on **macSlider**.
+
+If you rebuild the app yourself, each new build has a new ad-hoc signature and macOS forgets the grant. `make run` resets it so you get a fresh prompt; otherwise remove macSlider from the Accessibility list and re-add it.
+
+Then slide the right edge and listen.
 
 ### Build it yourself
 
